@@ -1,0 +1,175 @@
+---
+title: "Project1"
+author: "Brenden Ziemann"
+date: '2022-03-29'
+output:
+  pdf_document: default
+  html_document: default
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+## Project 1
+
+By: Brenden Ziemann
+
+```{r,include=FALSE}
+library(tidyverse)
+library(tmap)
+library(ggplot2)
+```
+
+## Introduction
+
+Briefly introduce the problem/dataset(s) and why you chose it, along with any major controversies, etc. that you feel are relevant<br><br>
+
+The problem is where do shark attacks happen most in terms of countries and what can you tell about the attacks.
+Are there any patterns?
+Is there anything that stands out?
+Looking at this data there is many different results I can discuss and report.
+I have always been afraid of sharks growing up and I wanted to see how many shark attacks there are every year.
+Where do they happen most?
+Are most shark attacks fatal?
+There are so many questions I had and was curious to how scared should I be.
+I find it interesting to see this data and use it to map to countries and find out information I had no idea about until I started to look.I have always been fascinated about sharks and scared of the ocean.I have always been afraid of sharks growing up and I wanted to see how many shark attacks there are every year.Where do they happen most?
+Are most shark attacks fatal?
+There are so many questions I had and was curious to how scared should I be.
+I find it interesting to see this data and use it to map to countries and find out information I had no idea about until I started to look.
+
+## Background
+
+Give some context for the significance of the problem.<br><br> There are many shark attacks every year all across the world.
+I feel it is a good idea to know when going on vacation about the countries that have high chance of attack or injury.
+It is good to know the information and interesting to knwo where sharks attack and the different facts that come with it.
+
+## Datasets
+
+The data set I choose to use was global shark attacks for countries around the world.
+The data set shows all types of identification for shark attacks that range from the years 1500 to 2022.
+But we will be only looking at 1980 to 2022.
+It uses the date, year, type, country, area(state/province), location(place), activity(what the person was doing),name, sex(M/F), age, injury(damage left by shark), fatal or not, time, and species(of shark) for each entry of an attack.
+
+## Table of Contents:
+
+### These are some of the topics for my project:
+
+-   Countries with Highest Number of Shark Attacks
+-   Countries with high fatal attacks
+-   Number of attacks per Year since 1980
+-   Ages of People that get Attacked
+-   Male vs Female getting Attacked
+-   Types of shark attacks
+
+## Results
+
+```{r,echo=FALSE,include=F}
+shark_df <- read.csv(file = 'global-shark-attack.csv',sep=";")
+sharkdf <- shark_df %>% select(1:15) %>% filter(Year > 1979)
+data("World")
+World$name_upper = toupper(World$name)
+library(dbplyr)
+
+World$name_upper <- recode(World$name_upper,'UNITED STATES' = 'USA')
+country_all_map = left_join(World, sharkdf, by = c("name_upper" = "Country"))
+```
+
+## Total Cases per Country
+
+Many of the countries have very low number of cases between the years 1980 to 2022.
+These are the 6 countries with the highest number of shark attacks.
+USA has by far the highest amount of shark attacks in the world by far.
+Around 3 times more than the second place country of australia.
+<br>
+
+```{r,echo=FALSE}
+#tm_shape(country_all_map) + tm_fill("Fatal..Y.N.",title = "Fatal Y/N",palette = c("antiquewhite", "sandybrown", "lightskyblue2")) + tm_polygons("Fatal..Y.N.")
+sum_country <- data.frame(table(country_all_map$name_upper))
+colnames(sum_country) = c("Country","Freq")
+sum_country <- sum_country %>% filter(Freq > 60)
+sum_country
+ggplot(sum_country,aes(x=Country,y=Freq,fill=Country))+geom_bar(colour="black", stat="identity") + theme(axis.text.x = element_text(angle = 45,hjust=1))
+```
+
+## Shark Attacks Every Year
+
+This Graph explains the amount of shark attacks around the world from 1980 to 2021 for each year.
+There is a growth the past 40 years in theh shark attacks by about 2 times.
+From years 1984 to 2000 it was around 50 to 60 and from years 2005 to 2020 it is around 115.
+Which shows the growth has been more and more.
+<br>
+
+```{r,echo=F}
+sum_year <- data.frame(table(country_all_map$Year))
+colnames(sum_year) = c("Year","Freq")
+sum_year$Year <- as.numeric(as.character(sum_year$Year))
+sum_year <- sum_year %>% filter(Year<2022)
+ggplot(sum_year,aes(x=Year,y=Freq,group=1)) + geom_line() + geom_point()
+```
+
+## Male to Female Comparison of Shark Attacks
+
+Male to Female comparison between the Countries.
+You can see here that males have been more dominate to be attacked by sharks than females around the world.
+This map shows that where we live in the US there has been more female attacks but around the world males are more spread out across the countries to have more.
+The histogram shows the counts of attacks for females and males and as you can see Males get attacked a lot more than females.
+<br>
+
+```{r,echo=FALSE,warning=FALSE}
+##echo = false to not show code and only output
+country_all_map$Sex <- recode(country_all_map$Sex,'M x 2' = 'M','lli'='F')
+tm_shape(country_all_map)+tm_polygons("Sex")
+ggplot(country_all_map,aes(x=Sex,fill = Sex)) + geom_histogram(stat="count")
+```
+
+## Fatal Attacks For Countries
+
+Many shark attacks aren't fatal but there are countries that have fatal attacks.
+Shown below is a would map of all the countries that have high fatal attacks along with the countries that have a lot less fatal attacks.
+This doesn't mean they are all fatal attacks in the countries but more fatal than the rest.
+The histogram below shows that more than 80% of shark attacks are non fatal.
+Over 83% of all shark attacks are non fatal but that leaves quite a bit that are fatal killing the person that was attacked.<br>
+
+```{r,echo=FALSE,warning=FALSE}
+country_all_map$Fatal..Y.N. <- recode(country_all_map$Fatal..Y.N.,'F' = 'N','Nq'='N','Y x 2' = 'Y','2017.0'='N')
+tm_shape(country_all_map) + tm_fill("Fatal..Y.N.",title = "Fatal Y/N",palette = c("antiquewhite", "sandybrown", "lightskyblue2")) + tm_polygons("Fatal..Y.N.")
+ggplot(country_all_map,aes(x=Fatal..Y.N.,fill = Fatal..Y.N.)) + geom_histogram(stat="count")
+table(country_all_map$Fatal..Y.N.)
+```
+
+## Map of Ages that get Attacked most
+
+From this graph we notice that a lot of the shark attacks are from younger aged people between the ages of 0 to 40 with 20 to 40 being a little more than 0 to 20.
+
+```{r,warning=F,echo=F}
+country_all_map$Age <- as.numeric(as.character(country_all_map$Age))
+#tm_shape(country_all_map) + tm_fill("Age",title = "Age",showNA = TRUE) + tm_polygons("Age")
+ggplot(country_all_map,aes(x=Age,fill = Age)) + geom_histogram(bins=100,stat="count",color="black")
+```
+
+## Types of shark attacks around the world
+
+Shark attacks around the world seem to be mostly unprovoked.
+There are countries however that have provoked shark attacks.
+These countries have more provoked shark attacks making the shark attack out of self defense or someone provking it in an agressive matter.
+<br><br><br><br>
+
+```{r,warning=F,echo=F}
+tm_shape(country_all_map) + tm_fill("Type",title = "Age",showNA = TRUE) + tm_polygons("Type")
+```
+
+## Conclusion
+
+Shark attacks are a rare occurrence but still happen more often than people think.
+The data seems to show over the past 400 years there has been a pretty significant increase in shark attacks and I would love to figure out why that is the case.
+It has about doubled in the past 40 years and continues to grow.
+Out of all the countries that have shark attacks the USA is the most with a significant amount.
+There seems to be something about the USA that sharks enjoy attacking people or feel unsafe.
+Out of the 6 top countries USA seems to equal the total of all 5 of the other countries attacks combined which is crazy to think about.
+Looking at the attacks a majority that are attacked are males over females.
+Most of the worlds attacks are dominated by males.
+Over 80% of all shark attacks are non fatal but people still leave with an injury much of the times they are attacked if they aren't killed.
+Out of all the attacks a great majority is younger aged peopled between the ages of 0 to 40.
+Based of the map between the ages of 0 to 40, 20 to 40 seems to be even more common for attacks.
+Most of the shark atttacks are unprovoked but there are certain countries that have high provoked shark attacks that may be areas of breeding grounds for sharks to feel defensive.
+Shark attacks are in increase risk and much of this data can be used to stay safe and make precautions to keep numbers down for the next 40 years to see a decrease in shark attacks.
