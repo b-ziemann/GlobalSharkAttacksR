@@ -1,4 +1,4 @@
-# GlobalSharkAttacksR
+## Global Shark Attacks Using R
 Tracking global Shark attacks with R and mapping to countries based of variables from dataframe.
 - Using R
 - Presentation of Project
